@@ -1,5 +1,5 @@
 ### Stage: 1 ###
-FROM node:20-alpine AS build
+FROM node:16-alpine AS build
 
 WORKDIR /app
 ENV REACT_APP_API_BASE_URL=/api

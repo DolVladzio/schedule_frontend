@@ -5,7 +5,7 @@ WORKDIR /app
 ENV REACT_APP_API_BASE_URL=/api
 
 COPY package*.json /app/
-RUN npm i
+RUN npm ci
 COPY . .
 
 RUN npm run build

@@ -1,4 +1,4 @@
-# Frontend with Docker
+# Frontend with Docker [![Build and Push Fronted Docker Images to GCP Artifact Registry](https://github.com/DolVladzio/azure_schedule_frontend/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/DolVladzio/azure_schedule_frontend/actions/workflows/docker-image.yml)
 
 This project is a React-based frontend application containerized using Docker. It uses a multi-stage Docker build to optimize the final image size and runtime performance. The production build is served using Nginx.
 

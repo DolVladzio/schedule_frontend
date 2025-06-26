@@ -1,0 +1,50 @@
+name: Build and Push Fronted Docker Images to GCP Artifact Registry
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  FRONTEND_IMAGE: ${{ secrets.GCR_NAME }}/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.REPO_NAME }}/frontend
+
+jobs:
+  frontend:
+    name: Build and Push Frontend Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Authenticate with GCP
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_KEY }}
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker ${{ secrets.GCR_NAME }}
+
+    - name: Set Up GCP Project
+      run: gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Define Timestamp Environment Variable
+      run: echo "TIMESTAMP=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+
+    - name: Add SSH Key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Clone the Private Repository
+      run: |
+        git clone git@github.com:DolVladzio/azure_schedule_frontend.git frontend
+
+    - name: Build Frontend Docker Image
+      run: |
+        docker build -t $FRONTEND_IMAGE:${{ env.TIMESTAMP }} ./frontend
+
+    - name: Push Frontend Docker Image
+      run: |
+        docker push $FRONTEND_IMAGE:${{ env.TIMESTAMP }}

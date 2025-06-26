@@ -32,18 +32,9 @@ jobs:
     - name: Define Timestamp Environment Variable
       run: echo "TIMESTAMP=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
 
-    - name: Add SSH Key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    - name: Clone the Private Repository
-      run: |
-        git clone git@github.com:DolVladzio/azure_schedule_frontend.git frontend
-
     - name: Build Frontend Docker Image
       run: |
-        docker build -t $FRONTEND_IMAGE:${{ env.TIMESTAMP }} ./frontend
+        docker build -t $FRONTEND_IMAGE:${{ env.TIMESTAMP }} .
 
     - name: Push Frontend Docker Image
       run: |

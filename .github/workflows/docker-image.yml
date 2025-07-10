@@ -6,9 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  FRONTEND_IMAGE: ${{ secrets.GCR_NAME }}/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.REPO_NAME }}/frontend
-
 jobs:
   frontend:
     name: Build and Push Frontend Docker Image
@@ -32,13 +29,17 @@ jobs:
     - name: Define Timestamp Environment Variable
       run: echo "TIMESTAMP=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
 
+    - name: Set The Frontend Image Name
+      run: |
+        echo "FRONTEND_IMAGE = ${{ secrets.GCR_NAME }}/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.REPO_NAME }}/frontend:${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+
     - name: Build Frontend Docker Image
       run: |
-        docker build -t $FRONTEND_IMAGE:${{ env.TIMESTAMP }} .
+        docker build -t ${{ env.FRONTEND_IMAGE }} .
 
     - name: Push Frontend Docker Image
       run: |
-        docker push $FRONTEND_IMAGE:${{ env.TIMESTAMP }}
+        docker push ${{ env.FRONTEND_IMAGE }}
 
     - name: Trigger the Ansible runner
       uses: peter-evans/repository-dispatch@v3
@@ -48,5 +49,5 @@ jobs:
         event-type: deploy-frontend
         client-payload: |
           {
-            "frontend_image": "$FRONTEND_IMAGE:${{ env.TIMESTAMP }}"
+            "frontend_image": "${{ env.FRONTEND_IMAGE }}"
           }

@@ -1,9 +1,8 @@
-name: Build and Push Fronted Docker Images to GCP Artifact Registry
+name: "Dev: Build fronted docker image and push to a GCR"
 
 on:
   push:
-    branches:
-      - main
+    branches: [ dev ]
   workflow_dispatch:
 
 jobs:
@@ -69,5 +68,6 @@ jobs:
         event-type: deploy-frontend
         client-payload: |
           {
-            "frontend_image": "${{ env.FRONTEND_IMAGE }}"
+            "frontend_image": "${{ env.FRONTEND_IMAGE }}",
+            "env": "dev"
           }

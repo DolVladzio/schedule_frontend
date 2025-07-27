@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker-agent' }
+    agent any
     environment {
         // Dynamically generate a timestamp
         CURRENT_TIMESTAMP      = new Date().format('yyyy-MM-dd-HH-mm-ss', TimeZone.getTimeZone('UTC'))

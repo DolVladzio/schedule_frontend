@@ -1,8 +1,8 @@
 name: "Prod: Build fronted docker image and push to a GCR"
 
 on:
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 jobs:

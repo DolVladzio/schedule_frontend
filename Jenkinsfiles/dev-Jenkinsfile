@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+    environment {
+        // Dynamically generate a timestamp
+        CURRENT_TIMESTAMP      = new Date().format('yyyy-MM-dd-HH-mm-ss', TimeZone.getTimeZone('UTC'))
+    }
+    stages {
+        stage('Setuping GCP') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-service-account-file', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                    gcloud auth configure-docker ${gcr_name}
+                    '''
+                }
+            }
+        }
+        stage('Cloning The Dev-Frontend Repo') {
+            steps {
+                dir('frontend') { // Clone the frontend repository into the 'frontend' directory
+                    git branch: 'dev', credentialsId: 'github_auth', 
+							url: "https://github.com/DolVladzio/schedule_frontend.git"
+                }
+            }
+        }
+        stage('Building The Dev-Frontend Image') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'gcr_name', variable: 'GCR_NAME'),
+                    string(credentialsId: 'repo_name', variable: 'REPO_NAME'),
+                    string(credentialsId: 'project_id', variable: 'PROJECT_ID')
+                ]) {
+                    withEnv(["FRONTEND_IMAGE=${GCR_NAME}/${PROJECT_ID}/${REPO_NAME}/frontend:${CURRENT_TIMESTAMP}"]) {
+                        sh "docker build -t ${FRONTEND_IMAGE} ./frontend"
+                    }
+                }
+            }
+        }
+        stage('Pushing The Dev-Frontend Image') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'gcr_name', variable: 'GCR_NAME'),
+                    string(credentialsId: 'repo_name', variable: 'REPO_NAME'),
+                    string(credentialsId: 'project_id', variable: 'PROJECT_ID')
+                ]) {
+                    withEnv(["FRONTEND_IMAGE=${GCR_NAME}/${PROJECT_ID}/${REPO_NAME}/frontend:${CURRENT_TIMESTAMP}"]) {
+                        sh "docker push ${FRONTEND_IMAGE}"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo "- Pipeline comleted!"
+        }
+        success {
+            echo '- Pipeline passed successfully!'
+        }
+        failure {
+            echo '- Pipeline failed! Check the logs for errors.'
+        }
+    }
+}

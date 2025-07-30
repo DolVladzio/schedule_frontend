@@ -1,8 +1,8 @@
 name: "Prod: Build fronted docker image and push to a GCR"
 
 on:
-  # push:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
       with:
         token: ${{ secrets.ACCESS_REPO_TOKEN }}
         repository: DolVladzio/schedule-Ansible
-        event-type: deploy-frontend
+        event-type: deploy-frontend-prod
         client-payload: |
           {
             "frontend_image": "${{ env.FRONTEND_IMAGE }}",

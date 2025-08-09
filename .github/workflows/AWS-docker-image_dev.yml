@@ -23,8 +23,7 @@ jobs:
 
     - name: Set The Frontend Image Name
       run: |
-        echo "REPO_NAME_GITHUB"="${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-        echo "FRONTEND_IMAGE=${{ secrets.CR_NAME_GITHUB }}/"${{ secrets.DOCKER_USERNAME }}"/${{ env.REPO_NAME_GITHUB }}/frontend:${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+        echo "FRONTEND_IMAGE=${{ secrets.CR_NAME_GITHUB }}/"${{ secrets.DOCKER_USERNAME }}"/schedule-fronted/frontend:${{ env.TIMESTAMP }}" >> $GITHUB_ENV
 
     - name: Build Frontend Docker Image
       run: |

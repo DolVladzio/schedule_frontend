@@ -1,0 +1,65 @@
+name: "Prod-AWS: Build fronted docker image and push to a GitHub CR"
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Build and Push Frontend Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.ACCESS_REPO_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Define Timestamp Environment Variable
+      run: echo "TIMESTAMP=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+
+    - name: Set The Frontend Image Name
+      run: |
+        echo "FRONTEND_IMAGE=${{ secrets.CR_NAME_GITHUB }}/"${{ secrets.DOCKER_USERNAME }}"/schedule-frontend/frontend:${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+
+    - name: Build Frontend Docker Image
+      run: |
+        docker build -t ${{ env.FRONTEND_IMAGE }} .
+
+    - name: Run Trivy Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.FRONTEND_IMAGE }}
+        format: table
+        exit-code: 0
+        ignore-unfixed: true
+        vuln-type: os,library
+        severity: CRITICAL,HIGH,MEDIUM
+
+    - name: Save Trivy Report
+      run: |
+        trivy image --format json --output trivy-report-${{ env.TIMESTAMP }}.json ${{ env.FRONTEND_IMAGE }}
+
+    - name: Upload Trivy Report Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: trivy-report-${{ env.TIMESTAMP }}.json
+        path: trivy-report-${{ env.TIMESTAMP }}.json
+
+    - name: Push Frontend Docker Image
+      run: |
+        docker push ${{ env.FRONTEND_IMAGE }}
+
+    # - name: Trigger the Ansible runner
+    #   uses: peter-evans/repository-dispatch@v3
+    #   with:
+    #     token: ${{ secrets.ACCESS_REPO_TOKEN }}
+    #     repository: DolVladzio/schedule-Ansible
+    #     event-type: deploy-frontend-dev
+    #     client-payload: |
+    #       {
+    #         "frontend_image": "${{ env.FRONTEND_IMAGE }}",
+    #         "env": "prod"
+    #       }
